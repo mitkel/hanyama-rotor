@@ -3,6 +3,7 @@ from puzzle import Puzzle
 
 # TODO: port to python 3.11
 # TODO: add readme and publish repo
+# TODO: visualize path graph
 
 INITIAL_STATE = Puzzle(Element(2, 0, 1), Element(2, 0, 1))
 GAOL_STATE = Puzzle(Element(0, 0, 1), Element(0, 0, 1))
@@ -18,6 +19,8 @@ def get_random_final():
 
 
 def main(initial_state, final_state):
+    INITIAL_STATE.visualize_states()
+
     path = initial_state.get_shortest_path(final_state=final_state)
     for v in path:
         print(v)

@@ -8,6 +8,9 @@ class Element:
     outer: Literal[0, 1, 2] = 0
     orientation: Literal[-1, 1] = 1
 
+    def __repr__(self):
+        return f"{self.inner}{self.outer}{self.orientation}"
+
     @property
     def rel_orientation(self) -> int:
         diff = (self.outer - self.inner) % 3

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import Iterator, Optional, Sequence
 
 import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
 
 from element import Element
 
@@ -27,7 +29,7 @@ class Puzzle:
     def random_move(self):
         return np.random.choice([s for s, _ in self.next_states()])
 
-    def explore_states(self):
+    def explore_states(self) -> tuple[list["Puzzle"], dict["Puzzle", int], dict["Puzzle", Optional["Puzzle"]]]:
         default_distances = defaultdict(lambda: float("inf"))
         default_distances[self] = 0
         return self._explore_states(
@@ -83,3 +85,14 @@ class Puzzle:
             state = prev[state]
 
         return [(state, move)] + path
+    
+    def visualize_states(self) -> None:
+        graph = nx.Graph()
+        graph.add_node(str(self))
+        available_states, _, _, _ = self.explore_states()
+        for state in available_states:
+            graph.add_node(str(state))
+            for neighbour, descr in state.next_states():
+                graph.add_edge(str(state), str(neighbour))
+        nx.draw(graph, with_labels=True, font_size=5)
+        plt.savefig("graph.png")
