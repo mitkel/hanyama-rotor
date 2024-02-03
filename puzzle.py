@@ -117,7 +117,7 @@ class Puzzle:
             if move.changes_or():
                 return 100
             else:
-                return 35
+                return 25
 
         graph = nx.Graph()
         node_colors = []
@@ -127,13 +127,11 @@ class Puzzle:
                 edge = (str(state), str(neighbour))
                 if graph.has_edge(*edge):
                     continue
-                for state in edge:
-                    if not graph.has_node(state):
-                        node_colors.append(get_node_color(state))
                 graph.add_edge(*edge, len=get_length(move), color=get_edge_color(move))
 
         pos = graphviz_layout(graph)
         edge_colors = [graph[u][v]["color"] for u, v in graph.edges]
+        node_colors = [get_node_color(u) for u in graph.nodes]
         nx.draw(
             graph, pos, node_size=100, font_size=5, edge_color=edge_colors, node_color=node_colors, with_labels=True
         )
