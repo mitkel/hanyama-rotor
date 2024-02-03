@@ -9,4 +9,4 @@ def main(initial_state: Puzzle, final_state: Puzzle):
 
 if __name__ == "__main__":
     Puzzle.initial_state().visualize_states()
-    main(Puzzle.final_state(), Puzzle.goal_state())
+    main(Puzzle.initial_state(), Puzzle.goal_state())

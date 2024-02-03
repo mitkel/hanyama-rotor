@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 from networkx.drawing.nx_agraph import graphviz_layout
+from pyvis.network import Network
 
 from element import Element
 from move import Move
@@ -119,6 +120,12 @@ class Puzzle:
             else:
                 return 25
 
+        def get_weight(move: Move) -> int:
+            if move.changes_or():
+                return 3
+            else:
+                return 6
+
         graph = nx.Graph()
         node_colors = []
         available_states, _, _, _ = self.explore_states()
@@ -127,7 +134,7 @@ class Puzzle:
                 edge = (str(state), str(neighbour))
                 if graph.has_edge(*edge):
                     continue
-                graph.add_edge(*edge, len=get_length(move), color=get_edge_color(move))
+                graph.add_edge(*edge, len=get_length(move), color=get_edge_color(move), weight=get_weight(move))
 
         pos = graphviz_layout(graph)
         edge_colors = [graph[u][v]["color"] for u, v in graph.edges]
@@ -137,3 +144,7 @@ class Puzzle:
         )
         plt.savefig("graph.png")
         plt.savefig("graph.pdf")
+        nt = Network("800px", width="100%", filter_menu=True, layout=False)
+        nt.show_buttons(filter_=["nodes"])
+        nt.from_nx(graph, default_node_size=20)
+        nt.show("graph.html", notebook=False)

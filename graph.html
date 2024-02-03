@@ -1,0 +1,341 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+                <link href="lib/tom-select/tom-select.css" rel="stylesheet">
+                <script src="lib/tom-select/tom-select.complete.min.js"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+              <div id="filter-menu" class="card-header">
+                <div class="row no-gutters">
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilter(value, 'item')"
+                            id="select-item"
+                        >
+                        <option value="">Select a network item</option>
+                        <option value="edge">edge</option>
+                        <option value="node">node</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            onchange="updateFilter(value, 'property')"
+                            id="select-property"
+                        >
+                        <option value="">Select a property...</option>
+                    </select>
+                  </div>
+                  <div class="col-3 pb-2">
+                    <select
+                            class="form-select"
+                            aria-label="Default select example"
+                            id="select-value"
+                        >
+                        <option value="">Select value(s)...</option>
+                    </select>
+                  </div>
+                  <div class="col-1 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="highlightFilter(filter);">Filter</button>
+                  </div>
+                  <div class="col-2 pb-2">
+                    <button type="button" class="btn btn-primary btn-block" onclick="clearFilter(true)">Reset Selection</button>
+                  </div>
+                </div>
+              </div>
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+                  // explicitly using onItemAdd and this function as we need to save multiple values
+                  let updateValueFilter = function() {
+                      return function () {
+                      filter['value'].push(arguments[0])
+                      }
+                  }
+
+                  let valueControl = new TomSelect("#select-value",{
+                      maxItems: null,
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: updateValueFilter()
+                  });
+
+                  let addValues = function() {
+                      return function () {
+                          // clear the current value options and add the selected attribute values
+                          // tom-select handles duplicates
+                          let selectedProperty = arguments[0];
+                          valueControl.clear();
+                          valueControl.clearOptions();
+                          filter['value'] = []
+                          if (filter['item'] === 'node') {
+                              for (let each in allNodes) {
+                                  valueControl.addOption({
+                                      id:allNodes[each][selectedProperty],
+                                      title:allNodes[each][selectedProperty]
+                                  })
+                              }
+                          }
+                          else if (filter['item'] === 'edge') {
+                              for (let each in allEdges) {
+                                  valueControl.addOption({
+                                      id:allEdges[each][selectedProperty],
+                                      title:allEdges[each][selectedProperty]
+                                  })
+                              }
+                          }
+                      }
+                  };
+
+                  let propControl = new TomSelect("#select-property",{
+                      valueField: 'id',
+                      labelField: 'title',
+                      searchField: 'title',
+                      create: false,
+                      sortField: {
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addValues()
+                  });
+
+                  let addProperties = function() {
+                      return function () {
+                          // loops through the selected network item and adds the attributes to dropdown
+                          // tom-select handles duplicates
+                          clearFilter(false)
+                          if (arguments[0] === 'edge') {
+                              for (let each in allEdges) {
+                                  if (allEdges.hasOwnProperty(each)) {
+                                      for (let eachProp in allEdges[each]) {
+                                          if (allEdges[each].hasOwnProperty(eachProp)) {
+                                              propControl.addOption({id: eachProp, title: eachProp})
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                          else if (arguments[0] === 'node') {
+                              for (let each in allNodes) {
+                                  if (allNodes.hasOwnProperty(each)) {
+                                      for (let eachProp in allNodes[each]) {
+                                          if (allNodes[each].hasOwnProperty(eachProp)
+                                              && (eachProp !== 'hidden' && eachProp !== 'savedLabel'
+                                                  && eachProp !== 'hiddenLabel')) {
+                                              propControl.addOption({id: eachProp, title: eachProp})
+
+                                          }
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                  };
+
+                  let itemControl = new TomSelect("#select-item",{
+                      create: false,
+                      sortField:{
+                          field: "text",
+                          direction: "asc"
+                      },
+                      onItemAdd: addProperties()
+                  });
+
+                  function clearFilter(reset) {
+                      // utility function to clear all the selected filter options
+                      // if reset is set to true, the existing filter will be removed
+                      // else, only the dropdown options are cleared
+                      propControl.clear();
+                      propControl.clearOptions();
+                      valueControl.clear();
+                      valueControl.clearOptions();
+                      filter = {
+                          item : '',
+                          property : '',
+                          value : []
+                      }
+                      if (reset) {
+                          itemControl.clear();
+                          filterHighlight({nodes: []})
+                      }
+                  }
+
+                  function updateFilter(value, key) {
+                      // key could be 'item' or 'property' and value is as selected in dropdown
+                      filter[key] = value
+                  }
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "001-221", "label": "001-221", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "201-201", "label": "201-201", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "011-121", "label": "011-121", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "00-1-121", "label": "00-1-121", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "221-001", "label": "221-001", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "111-111", "label": "111-111", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "01-1-221", "label": "01-1-221", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "20-1-111", "label": "20-1-111", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "121-011", "label": "121-011", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "121-00-1", "label": "121-00-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "221-01-1", "label": "221-01-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "111-20-1", "label": "111-20-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "11-1-011", "label": "11-1-011", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "011-11-1", "label": "011-11-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "201-11-1", "label": "201-11-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "011-22-1", "label": "011-22-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "01-1-001", "label": "01-1-001", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "12-1-111", "label": "12-1-111", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "01-1-01-1", "label": "01-1-01-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "111-12-1", "label": "111-12-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "001-01-1", "label": "001-01-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "001-12-1", "label": "001-12-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "01-1-12-1", "label": "01-1-12-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "11-1-201", "label": "11-1-201", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "00-1-201", "label": "00-1-201", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "22-1-121", "label": "22-1-121", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "22-1-11-1", "label": "22-1-11-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "11-1-00-1", "label": "11-1-00-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "00-1-11-1", "label": "00-1-11-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "121-22-1", "label": "121-22-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "11-1-22-1", "label": "11-1-22-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "201-00-1", "label": "201-00-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "00-1-22-1", "label": "00-1-22-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "11-1-11-1", "label": "11-1-11-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "12-1-001", "label": "12-1-001", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "20-1-221", "label": "20-1-221", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "221-221", "label": "221-221", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "12-1-12-1", "label": "12-1-12-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "20-1-01-1", "label": "20-1-01-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "12-1-20-1", "label": "12-1-20-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "20-1-12-1", "label": "20-1-12-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "221-20-1", "label": "221-20-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "01-1-20-1", "label": "01-1-20-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "20-1-20-1", "label": "20-1-20-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "12-1-01-1", "label": "12-1-01-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "111-01-1", "label": "111-01-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "01-1-111", "label": "01-1-111", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "22-1-011", "label": "22-1-011", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "22-1-00-1", "label": "22-1-00-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "201-121", "label": "201-121", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "121-201", "label": "121-201", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "00-1-00-1", "label": "00-1-00-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "22-1-22-1", "label": "22-1-22-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "22-1-201", "label": "22-1-201", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "201-22-1", "label": "201-22-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "011-00-1", "label": "011-00-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "121-11-1", "label": "121-11-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "011-011", "label": "011-011", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "11-1-121", "label": "11-1-121", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "00-1-011", "label": "00-1-011", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "001-111", "label": "001-111", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "111-001", "label": "111-001", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "221-12-1", "label": "221-12-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "12-1-221", "label": "12-1-221", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "20-1-001", "label": "20-1-001", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "001-20-1", "label": "001-20-1", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "221-111", "label": "221-111", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "111-221", "label": "111-221", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "121-121", "label": "121-121", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "201-011", "label": "201-011", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "011-201", "label": "011-201", "shape": "dot", "size": 20}, {"color": "#97c2fc", "id": "001-001", "label": "001-001", "shape": "dot", "size": 20}]);
+                  edges = new vis.DataSet([{"color": "blue", "from": "001-221", "len": 25, "to": "201-201", "width": 6}, {"color": "blue", "from": "001-221", "len": 25, "to": "011-121", "width": 6}, {"color": "green", "from": "001-221", "len": 100, "to": "00-1-121", "width": 3}, {"color": "blue", "from": "201-201", "len": 25, "to": "221-001", "width": 6}, {"color": "blue", "from": "011-121", "len": 25, "to": "111-111", "width": 6}, {"color": "green", "from": "011-121", "len": 100, "to": "01-1-221", "width": 3}, {"color": "blue", "from": "00-1-121", "len": 25, "to": "01-1-221", "width": 6}, {"color": "blue", "from": "00-1-121", "len": 25, "to": "20-1-111", "width": 6}, {"color": "blue", "from": "221-001", "len": 25, "to": "121-011", "width": 6}, {"color": "green", "from": "221-001", "len": 100, "to": "121-00-1", "width": 3}, {"color": "blue", "from": "121-011", "len": 25, "to": "111-111", "width": 6}, {"color": "green", "from": "121-011", "len": 100, "to": "221-01-1", "width": 3}, {"color": "blue", "from": "121-00-1", "len": 25, "to": "221-01-1", "width": 6}, {"color": "blue", "from": "121-00-1", "len": 25, "to": "111-20-1", "width": 6}, {"color": "red", "from": "111-111", "len": 100, "to": "11-1-011", "width": 3}, {"color": "red", "from": "111-111", "len": 100, "to": "011-11-1", "width": 3}, {"color": "blue", "from": "221-01-1", "len": 25, "to": "201-11-1", "width": 6}, {"color": "blue", "from": "111-20-1", "len": 25, "to": "011-22-1", "width": 6}, {"color": "blue", "from": "11-1-011", "len": 25, "to": "01-1-001", "width": 6}, {"color": "blue", "from": "11-1-011", "len": 25, "to": "12-1-111", "width": 6}, {"color": "red", "from": "11-1-011", "len": 100, "to": "01-1-01-1", "width": 3}, {"color": "blue", "from": "011-11-1", "len": 25, "to": "111-12-1", "width": 6}, {"color": "blue", "from": "011-11-1", "len": 25, "to": "001-01-1", "width": 6}, {"color": "red", "from": "011-11-1", "len": 100, "to": "01-1-01-1", "width": 3}, {"color": "blue", "from": "201-11-1", "len": 25, "to": "001-12-1", "width": 6}, {"color": "blue", "from": "011-22-1", "len": 25, "to": "001-12-1", "width": 6}, {"color": "green", "from": "011-22-1", "len": 100, "to": "01-1-12-1", "width": 3}, {"color": "blue", "from": "01-1-221", "len": 25, "to": "11-1-201", "width": 6}, {"color": "blue", "from": "01-1-001", "len": 25, "to": "00-1-201", "width": 6}, {"color": "blue", "from": "12-1-111", "len": 25, "to": "22-1-121", "width": 6}, {"color": "green", "from": "12-1-111", "len": 100, "to": "22-1-11-1", "width": 3}, {"color": "blue", "from": "01-1-01-1", "len": 25, "to": "11-1-00-1", "width": 6}, {"color": "blue", "from": "01-1-01-1", "len": 25, "to": "00-1-11-1", "width": 6}, {"color": "blue", "from": "111-12-1", "len": 25, "to": "121-22-1", "width": 6}, {"color": "green", "from": "111-12-1", "len": 100, "to": "11-1-22-1", "width": 3}, {"color": "blue", "from": "001-01-1", "len": 25, "to": "201-00-1", "width": 6}, {"color": "green", "from": "001-12-1", "len": 100, "to": "00-1-22-1", "width": 3}, {"color": "blue", "from": "01-1-12-1", "len": 25, "to": "11-1-11-1", "width": 6}, {"color": "blue", "from": "01-1-12-1", "len": 25, "to": "00-1-22-1", "width": 6}, {"color": "blue", "from": "11-1-201", "len": 25, "to": "12-1-001", "width": 6}, {"color": "blue", "from": "00-1-201", "len": 25, "to": "20-1-221", "width": 6}, {"color": "blue", "from": "22-1-121", "len": 25, "to": "20-1-221", "width": 6}, {"color": "green", "from": "22-1-121", "len": 100, "to": "221-221", "width": 3}, {"color": "green", "from": "22-1-121", "len": 100, "to": "12-1-12-1", "width": 3}, {"color": "blue", "from": "22-1-11-1", "len": 25, "to": "12-1-12-1", "width": 6}, {"color": "blue", "from": "22-1-11-1", "len": 25, "to": "20-1-01-1", "width": 6}, {"color": "blue", "from": "11-1-00-1", "len": 25, "to": "12-1-20-1", "width": 6}, {"color": "blue", "from": "00-1-11-1", "len": 25, "to": "20-1-12-1", "width": 6}, {"color": "blue", "from": "121-22-1", "len": 25, "to": "221-20-1", "width": 6}, {"color": "green", "from": "121-22-1", "len": 100, "to": "12-1-12-1", "width": 3}, {"color": "green", "from": "121-22-1", "len": 100, "to": "221-221", "width": 3}, {"color": "blue", "from": "11-1-22-1", "len": 25, "to": "01-1-20-1", "width": 6}, {"color": "blue", "from": "11-1-22-1", "len": 25, "to": "12-1-12-1", "width": 6}, {"color": "blue", "from": "201-00-1", "len": 25, "to": "221-20-1", "width": 6}, {"color": "blue", "from": "00-1-22-1", "len": 25, "to": "20-1-20-1", "width": 6}, {"color": "blue", "from": "11-1-11-1", "len": 25, "to": "12-1-01-1", "width": 6}, {"color": "red", "from": "11-1-11-1", "len": 100, "to": "111-01-1", "width": 3}, {"color": "red", "from": "11-1-11-1", "len": 100, "to": "01-1-111", "width": 3}, {"color": "blue", "from": "20-1-111", "len": 25, "to": "22-1-011", "width": 6}, {"color": "blue", "from": "12-1-001", "len": 25, "to": "22-1-011", "width": 6}, {"color": "green", "from": "12-1-001", "len": 100, "to": "22-1-00-1", "width": 3}, {"color": "green", "from": "20-1-221", "len": 100, "to": "201-121", "width": 3}, {"color": "blue", "from": "221-221", "len": 25, "to": "121-201", "width": 6}, {"color": "blue", "from": "221-221", "len": 25, "to": "201-121", "width": 6}, {"color": "blue", "from": "20-1-01-1", "len": 25, "to": "00-1-00-1", "width": 6}, {"color": "blue", "from": "12-1-20-1", "len": 25, "to": "22-1-22-1", "width": 6}, {"color": "green", "from": "12-1-20-1", "len": 100, "to": "22-1-201", "width": 3}, {"color": "blue", "from": "20-1-12-1", "len": 25, "to": "22-1-22-1", "width": 6}, {"color": "green", "from": "20-1-12-1", "len": 100, "to": "201-22-1", "width": 3}, {"color": "green", "from": "221-20-1", "len": 100, "to": "121-201", "width": 3}, {"color": "blue", "from": "01-1-20-1", "len": 25, "to": "00-1-00-1", "width": 6}, {"color": "blue", "from": "20-1-20-1", "len": 25, "to": "22-1-00-1", "width": 6}, {"color": "blue", "from": "12-1-01-1", "len": 25, "to": "22-1-00-1", "width": 6}, {"color": "green", "from": "12-1-01-1", "len": 100, "to": "22-1-011", "width": 3}, {"color": "blue", "from": "111-01-1", "len": 25, "to": "011-00-1", "width": 6}, {"color": "blue", "from": "111-01-1", "len": 25, "to": "121-11-1", "width": 6}, {"color": "red", "from": "111-01-1", "len": 100, "to": "011-011", "width": 3}, {"color": "blue", "from": "01-1-111", "len": 25, "to": "11-1-121", "width": 6}, {"color": "blue", "from": "01-1-111", "len": 25, "to": "00-1-011", "width": 6}, {"color": "red", "from": "01-1-111", "len": 100, "to": "011-011", "width": 3}, {"color": "blue", "from": "201-121", "len": 25, "to": "001-111", "width": 6}, {"color": "blue", "from": "121-201", "len": 25, "to": "111-001", "width": 6}, {"color": "green", "from": "22-1-22-1", "len": 100, "to": "221-12-1", "width": 3}, {"color": "green", "from": "22-1-22-1", "len": 100, "to": "12-1-221", "width": 3}, {"color": "blue", "from": "22-1-201", "len": 25, "to": "12-1-221", "width": 6}, {"color": "blue", "from": "22-1-201", "len": 25, "to": "20-1-001", "width": 6}, {"color": "blue", "from": "201-22-1", "len": 25, "to": "001-20-1", "width": 6}, {"color": "blue", "from": "201-22-1", "len": 25, "to": "221-12-1", "width": 6}, {"color": "blue", "from": "011-00-1", "len": 25, "to": "001-20-1", "width": 6}, {"color": "blue", "from": "121-11-1", "len": 25, "to": "221-12-1", "width": 6}, {"color": "green", "from": "121-11-1", "len": 100, "to": "221-111", "width": 3}, {"color": "blue", "from": "011-011", "len": 25, "to": "111-001", "width": 6}, {"color": "blue", "from": "011-011", "len": 25, "to": "001-111", "width": 6}, {"color": "blue", "from": "11-1-121", "len": 25, "to": "12-1-221", "width": 6}, {"color": "green", "from": "11-1-121", "len": 100, "to": "111-221", "width": 3}, {"color": "blue", "from": "00-1-011", "len": 25, "to": "20-1-001", "width": 6}, {"color": "green", "from": "221-12-1", "len": 100, "to": "121-121", "width": 3}, {"color": "green", "from": "12-1-221", "len": 100, "to": "121-121", "width": 3}, {"color": "blue", "from": "221-111", "len": 25, "to": "121-121", "width": 6}, {"color": "blue", "from": "221-111", "len": 25, "to": "201-011", "width": 6}, {"color": "blue", "from": "111-221", "len": 25, "to": "011-201", "width": 6}, {"color": "blue", "from": "111-221", "len": 25, "to": "121-121", "width": 6}, {"color": "blue", "from": "201-011", "len": 25, "to": "001-001", "width": 6}, {"color": "blue", "from": "011-201", "len": 25, "to": "001-001", "width": 6}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "nodes"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
