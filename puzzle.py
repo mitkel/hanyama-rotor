@@ -1,10 +1,9 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Iterator, Optional, Sequence
+from typing import Iterator, Self, Sequence
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import numpy as np
 from networkx.drawing.nx_agraph import graphviz_layout
 from pyvis.network import Network
 
@@ -14,55 +13,53 @@ from move import Move
 
 @dataclass(frozen=True)
 class Puzzle:
-    golden: Element = Element()
-    silver: Element = Element()
+    golden: Element
+    silver: Element
 
-    def __str__(self):
+    def __repr__(self) -> str:
         return f"{self.golden}-{self.silver}"
 
     @classmethod
-    def initial_state(cls) -> "Puzzle":
-        return Puzzle(Element(2, 0, 1), Element(2, 0, 1))
+    def initial_state(cls) -> Self:
+        return cls(Element(2, 0, 1), Element(2, 0, 1))
 
     @classmethod
-    def goal_state(cls) -> "Puzzle":
-        return Puzzle(Element(0, 0, 1), Element(0, 0, 1))
+    def goal_state(cls) -> Self:
+        return cls(Element(0, 0, 1), Element(0, 0, 1))
 
-    def next_states(self) -> Iterator[tuple["Puzzle", Move]]:
-        yield Puzzle(self.golden.move_inner(), self.silver.move_outer()), Move.SO
-        yield Puzzle(self.golden.move_outer(), self.silver.move_inner()), Move.GO
+    def next_states(self) -> Iterator[tuple[Self, Move]]:
+        yield self.__class__(self.golden.move_inner(), self.silver.move_outer()), Move.SO
+        yield self.__class__(self.golden.move_outer(), self.silver.move_inner()), Move.GO
         if self.silver.outer == 2:
-            yield Puzzle(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLH
+            yield self.__class__(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLH
         if self.golden.outer == 2:
-            yield Puzzle(self.golden.move_inner(), self.silver.change_or()), Move.GLH_SCO
+            yield self.__class__(self.golden.move_inner(), self.silver.change_or()), Move.GLH_SCO
         if self.silver.outer == 1 and self.golden.outer == 1:
-            yield Puzzle(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLT
-            yield Puzzle(self.golden.move_inner(), self.silver.change_or()), Move.GLT_SCO
+            yield self.__class__(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLT
+            yield self.__class__(self.golden.move_inner(), self.silver.change_or()), Move.GLT_SCO
 
-    def explore_states(self) -> tuple[list["Puzzle"], dict["Puzzle", int], dict["Puzzle", Optional["Puzzle"]]]:
-        default_distances = defaultdict(lambda: float("inf"))
-        default_distances[self] = 0
+    def explore_states(self) -> tuple[list[Self], dict[Self, float], dict[Self, Self], dict[Self, str]]:
         return self._explore_states(
             visited=[],
             unvisited=[s for s, _ in self.next_states()],
-            distances=default_distances,
-            prev=defaultdict(lambda: None),
+            distances={self: 0.0},
+            prev={self: self},
             prev_move=defaultdict(lambda: ""),
         )
 
     def _explore_states(
         self,
-        visited: list["Puzzle"],
-        unvisited: list["Puzzle"],
-        distances: dict["Puzzle", int],
-        prev: dict["Puzzle", Optional["Puzzle"]],
-        prev_move: dict["Puzzle", str],
-    ) -> tuple[list["Puzzle"], dict["Puzzle", int], dict["Puzzle", Optional["Puzzle"]]]:
+        visited: list[Self],
+        unvisited: list[Self],
+        distances: dict[Self, float],
+        prev: dict[Self, Self],
+        prev_move: dict[Self, str],
+    ) -> tuple[list[Self], dict[Self, float], dict[Self, Self], dict[Self, str]]:
         if len(unvisited) == 0:
             return visited, distances, prev, prev_move
 
-        min_dist = min([distances[s] for s in unvisited])
-        active_state = [s for s in unvisited if distances[s] == min_dist][0]
+        min_dist = min([distances.get(s, float("inf")) for s in unvisited])
+        active_state = [s for s in unvisited if distances.get(s, float("inf")) == min_dist][0]
         unvisited = [s for s in unvisited if s != active_state]
         visited.append(active_state)
 
@@ -73,15 +70,15 @@ class Puzzle:
             # next_state_candidate not visited
             if next_state_candidate not in unvisited:
                 unvisited.append(next_state_candidate)
-            dist = min_dist + 1
-            if dist < distances[next_state_candidate]:
+            dist = min_dist + 1.0
+            if dist < distances.get(next_state_candidate, float("inf")):
                 distances.update({next_state_candidate: dist})
                 prev.update({next_state_candidate: active_state})
                 prev_move.update({next_state_candidate: move.value})
 
         return active_state._explore_states(visited, unvisited, distances, prev, prev_move)
 
-    def get_shortest_path(self, final_state: "Puzzle") -> Sequence[tuple["Puzzle", str]]:
+    def get_shortest_path(self, final_state: Self) -> Sequence[tuple[Self, str]]:
         visited, _, prev, prev_move = self.explore_states()
         if final_state not in visited:
             print("Final state is unattainable")
@@ -89,7 +86,7 @@ class Puzzle:
 
         state = final_state
         move = ""
-        path = []
+        path: list[tuple[Self, str]] = []
         while state != self:
             path = [(state, move)] + path
             move = prev_move[state]
@@ -147,4 +144,4 @@ class Puzzle:
         nt = Network("800px", width="100%", filter_menu=True, layout=False)
         nt.show_buttons(filter_=["nodes"])
         nt.from_nx(graph, default_node_size=20)
-        nt.show("graph.html", notebook=False)
+        nt.show("graph.html")
