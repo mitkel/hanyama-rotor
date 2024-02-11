@@ -16,7 +16,7 @@ class Puzzle:
         return f"{self.golden}{self.silver}"
 
     @classmethod
-    def from_str(cls, s: str) -> Result["Puzzle", Exception]:
+    def from_str(cls, s: str) -> Result["Puzzle", ValueError]:
         golden, silver = Element.from_str(s[:3]), Element.from_str(s[3:])
         return Result.do(Puzzle(g, s) for g in golden for s in silver)
 

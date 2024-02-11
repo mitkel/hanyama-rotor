@@ -1,5 +1,7 @@
 from typing import NamedTuple, Sequence, TypeAlias
 
+from returns.maybe import Maybe, Nothing, Some
+
 from rotor.puzzle import Puzzle
 
 P: TypeAlias = Puzzle
@@ -54,12 +56,11 @@ def explore_puzzle_from(initial_state: P) -> DijkstraStep:
     )
 
 
-def find_shortest_path(initial_state: P, final_state: P) -> Sequence[tuple[P, str]]:
+def find_shortest_path(initial_state: P, final_state: P) -> Maybe[Sequence[tuple[P, str]]]:
     """Returns a list of (state, move) pairs that form the shortest path from the initial state to the final state."""
     final_dijkstra_step = explore_puzzle_from(initial_state)
     if final_state not in final_dijkstra_step.visited:
-        print("Final state is unattainable")
-        return []
+        return Nothing
 
     state, move = final_state, ""
     path: list[tuple["Puzzle", str]] = []
@@ -68,4 +69,4 @@ def find_shortest_path(initial_state: P, final_state: P) -> Sequence[tuple[P, st
         move = final_dijkstra_step.prev_move[state]
         state = final_dijkstra_step.prev[state]
 
-    return [(state, move)] + path
+    return Some([(state, move)] + path)

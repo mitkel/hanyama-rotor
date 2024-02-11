@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from returns.result import Result
+from returns.result import Failure, Result, Success
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,11 +20,11 @@ class Element:
 
     @classmethod
     def from_str(cls, s: str) -> Result["Element", ValueError]:
-        if len(s) != 3 or s[0] not in "+-":
-            return Result.from_failure(ValueError(f"Invalid element description {s}"))
-        inner = int(s[1]) % 3
-        outer = int(s[2]) % 3
-        return Result.from_value(Element(inner, outer, s[0] == "+"))
+        if len(s) != 3 or s[1] not in "012" or s[2] not in "012" or s[0] not in "+-":
+            return Failure(ValueError(f"Invalid element description {s}"))
+        inner = int(s[1])
+        outer = int(s[2])
+        return Success(Element(inner, outer, s[0] == "+"))
 
     @property
     def rel_orientation(self) -> int:

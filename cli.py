@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 
 from returns.maybe import Some
+from returns.result import Failure, Success
 
 from rotor.explore import find_shortest_path
 from rotor.puzzle import Puzzle
@@ -9,13 +10,22 @@ from rotor.visualize import visualize_available_states
 
 
 def main(initial_state_str: str, final_state_str: str, visualize: bool, save_path: Path) -> None:
-    initial_state = Puzzle.from_str(initial_state_str).unwrap()
-    final_state = Puzzle.from_str(final_state_str).unwrap()
+    match Puzzle.from_str(initial_state_str), Puzzle.from_str(final_state_str):
+        case Success(initial), Success(final):
+            initial_state, final_state = initial, final
+        case Failure(e), _:
+            print(e)
+            return
+        case Success(_), Failure(e):
+            print(e)
+            return
 
     if visualize:
         visualize_available_states(initial_state, Some(save_path))
 
-    path = find_shortest_path(initial_state=initial_state, final_state=final_state)
+    path = find_shortest_path(initial_state=initial_state, final_state=final_state).value_or([])
+    if not path:
+        print(f"Final state {final_state_str} not reachable from initial state {initial_state_str}.")
     for v in path:
         print(v)
 
