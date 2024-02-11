@@ -3,3 +3,15 @@ line-length = 120
 
 [tool.mypy]
 plugins = ["returns.contrib.mypy.returns_plugin"]
+
+[[tool.mypy.overrides]]
+module = "matplotlib.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "networkx.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pyvis.*"
+ignore_missing_imports = true
