@@ -24,7 +24,11 @@ class Element:
             return Failure(ValueError(f"Invalid element description {s}"))
         inner = int(s[1])
         outer = int(s[2])
-        return Success(Element(inner, outer, s[0] == "+"))
+        try:
+            el = Element(inner, outer, s[0] == "+")
+            return Success(el)
+        except ValueError as e:
+            return Failure(e)
 
     @property
     def rel_orientation(self) -> int:
