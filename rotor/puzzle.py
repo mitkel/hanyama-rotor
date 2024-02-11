@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Iterator
 
+from returns.result import Result
+
 from rotor.element import Element
 from rotor.move import Move
 
@@ -12,6 +14,11 @@ class Puzzle:
 
     def __repr__(self) -> str:
         return f"{self.golden}{self.silver}"
+
+    @classmethod
+    def from_str(cls, s: str) -> Result["Puzzle", Exception]:
+        golden, silver = Element.from_str(s[:3]), Element.from_str(s[3:])
+        return Result.do(Puzzle(g, s) for g in golden for s in silver)
 
     @classmethod
     def initial_state(cls) -> "Puzzle":

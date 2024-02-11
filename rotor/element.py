@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Literal
 
+from returns.result import safe
+
 
 @dataclass(frozen=True, slots=True)
 class Element:
@@ -13,6 +15,18 @@ class Element:
     def __str__(self) -> str:
         orientation_sign = "+" if self.orientation == 1 else "-"
         return f"{orientation_sign}{self.inner}{self.outer}"
+
+    @classmethod
+    @safe
+    def from_str(cls, s: str) -> "Element":
+        if len(s) != 3 or s[1] not in "012" or s[2] not in "012" or s[0] not in "+-":
+            raise ValueError(f"Invalid element description {s}")
+        inner = int(s[1])
+        outer = int(s[2])
+        if s[0] == "+":
+            return Element(inner, outer, 1)
+        else:
+            return Element(inner, outer, -1)
 
     @property
     def rel_orientation(self) -> int:
