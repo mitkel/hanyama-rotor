@@ -22,11 +22,11 @@ class Puzzle:
 
     @classmethod
     def initial_state(cls) -> "Puzzle":
-        return cls(Element(2, 0, 1), Element(2, 0, 1))
+        return cls(Element(2, 0, True), Element(2, 0, True))
 
     @classmethod
     def goal_state(cls) -> "Puzzle":
-        return cls(Element(0, 0, 1), Element(0, 0, 1))
+        return cls(Element(0, 0, True), Element(0, 0, True))
 
     def next_states(self) -> Iterator[tuple["Puzzle", Move]]:
         yield Puzzle(self.golden.move_inner(), self.silver.move_outer()), Move.SO
