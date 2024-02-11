@@ -12,7 +12,7 @@ from rotor.move import Move
 from rotor.puzzle import Puzzle
 
 P: TypeAlias = Puzzle
-default_save_path = Path(__file__).parent / "res"
+default_save_path = Path(__file__).parent.parent / "res"
 
 
 def visualize_available_states(initial_state: P, save_path: Maybe[Path] = Nothing) -> None:
