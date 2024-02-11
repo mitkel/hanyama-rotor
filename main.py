@@ -1,4 +1,4 @@
-from puzzle import Puzzle
+from rotor.puzzle import Puzzle
 
 
 def main(initial_state: Puzzle, final_state: Puzzle) -> None:

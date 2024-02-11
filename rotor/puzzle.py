@@ -1,14 +1,14 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Iterator, Self, Sequence
+from typing import Iterator, Sequence
 
 import matplotlib.pyplot as plt
 import networkx as nx
 from networkx.drawing.nx_agraph import graphviz_layout
 from pyvis.network import Network
 
-from element import Element
-from move import Move
+from rotor.element import Element
+from rotor.move import Move
 
 
 @dataclass(frozen=True)
@@ -17,28 +17,30 @@ class Puzzle:
     silver: Element
 
     def __repr__(self) -> str:
-        return f"{self.golden}-{self.silver}"
+        return f"{self.golden}{self.silver}"
 
     @classmethod
-    def initial_state(cls) -> Self:
+    def initial_state(cls) -> "Puzzle":
         return cls(Element(2, 0, 1), Element(2, 0, 1))
 
     @classmethod
-    def goal_state(cls) -> Self:
+    def goal_state(cls) -> "Puzzle":
         return cls(Element(0, 0, 1), Element(0, 0, 1))
 
-    def next_states(self) -> Iterator[tuple[Self, Move]]:
-        yield self.__class__(self.golden.move_inner(), self.silver.move_outer()), Move.SO
-        yield self.__class__(self.golden.move_outer(), self.silver.move_inner()), Move.GO
+    def next_states(self) -> Iterator[tuple["Puzzle", Move]]:
+        yield Puzzle(self.golden.move_inner(), self.silver.move_outer()), Move.SO
+        yield Puzzle(self.golden.move_outer(), self.silver.move_inner()), Move.GO
         if self.silver.outer == 2:
-            yield self.__class__(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLH
+            yield Puzzle(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLH
         if self.golden.outer == 2:
-            yield self.__class__(self.golden.move_inner(), self.silver.change_or()), Move.GLH_SCO
+            yield Puzzle(self.golden.move_inner(), self.silver.change_or()), Move.GLH_SCO
         if self.silver.outer == 1 and self.golden.outer == 1:
-            yield self.__class__(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLT
-            yield self.__class__(self.golden.move_inner(), self.silver.change_or()), Move.GLT_SCO
+            yield Puzzle(self.golden.change_or(), self.silver.move_inner()), Move.GCO_SLT
+            yield Puzzle(self.golden.move_inner(), self.silver.change_or()), Move.GLT_SCO
 
-    def explore_states(self) -> tuple[list[Self], dict[Self, float], dict[Self, Self], dict[Self, str]]:
+    def explore_states(
+        self,
+    ) -> tuple[list["Puzzle"], dict["Puzzle", float], dict["Puzzle", "Puzzle"], dict["Puzzle", str]]:
         return self._explore_states(
             visited=[],
             unvisited=[s for s, _ in self.next_states()],
@@ -49,12 +51,12 @@ class Puzzle:
 
     def _explore_states(
         self,
-        visited: list[Self],
-        unvisited: list[Self],
-        distances: dict[Self, float],
-        prev: dict[Self, Self],
-        prev_move: dict[Self, str],
-    ) -> tuple[list[Self], dict[Self, float], dict[Self, Self], dict[Self, str]]:
+        visited: list["Puzzle"],
+        unvisited: list["Puzzle"],
+        distances: dict["Puzzle", float],
+        prev: dict["Puzzle", "Puzzle"],
+        prev_move: dict["Puzzle", str],
+    ) -> tuple[list["Puzzle"], dict["Puzzle", float], dict["Puzzle", "Puzzle"], dict["Puzzle", str]]:
         if len(unvisited) == 0:
             return visited, distances, prev, prev_move
 
@@ -78,7 +80,7 @@ class Puzzle:
 
         return active_state._explore_states(visited, unvisited, distances, prev, prev_move)
 
-    def get_shortest_path(self, final_state: Self) -> Sequence[tuple[Self, str]]:
+    def get_shortest_path(self, final_state: "Puzzle") -> Sequence[tuple["Puzzle", str]]:
         visited, _, prev, prev_move = self.explore_states()
         if final_state not in visited:
             print("Final state is unattainable")
@@ -86,7 +88,7 @@ class Puzzle:
 
         state = final_state
         move = ""
-        path: list[tuple[Self, str]] = []
+        path: list[tuple["Puzzle", str]] = []
         while state != self:
             path = [(state, move)] + path
             move = prev_move[state]
@@ -139,9 +141,8 @@ class Puzzle:
         nx.draw(
             graph, pos, node_size=100, font_size=5, edge_color=edge_colors, node_color=node_colors, with_labels=True
         )
-        plt.savefig("graph.png")
-        plt.savefig("graph.pdf")
+        plt.savefig("res/graph.pdf")
         nt = Network("800px", width="100%", filter_menu=True, layout=False)
         nt.show_buttons(filter_=["nodes"])
         nt.from_nx(graph, default_node_size=20)
-        nt.show("graph.html")
+        nt.show("res/graph.html")
