@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import Literal
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Element:
-    inner: int = 0
-    outer: int = 0
-    orientation: Literal[-1, 1] = 1
+    inner: int
+    outer: int
+    orientation: Literal[-1, 1]
 
     def __post_init__(self) -> None: ...
 

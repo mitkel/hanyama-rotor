@@ -1,12 +1,14 @@
+from rotor.explore import find_shortest_path
 from rotor.puzzle import Puzzle
+from rotor.visualize import visualize_available_states
 
 
 def main(initial_state: Puzzle, final_state: Puzzle) -> None:
-    path = initial_state.get_shortest_path(final_state=final_state)
+    path = find_shortest_path(initial_state=initial_state, final_state=final_state)
     for v in path:
         print(v)
 
 
 if __name__ == "__main__":
-    Puzzle.initial_state().visualize_states()
+    visualize_available_states(Puzzle.initial_state())
     main(Puzzle.initial_state(), Puzzle.goal_state())
