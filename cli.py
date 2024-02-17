@@ -19,7 +19,7 @@ def main(initial_state_str: str, final_state_str: str, visualize: bool) -> None:
             return
 
     if visualize:
-        visualize_available_states(initial_state)
+        visualize_available_states(initial_state, final_state)
 
     path = find_shortest_path(initial_state=initial_state, final_state=final_state).value_or([])
     if not path:

@@ -2,7 +2,9 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm+all,intellij+all,python,macos
 
 *.pdf
+*.png
 *.html
+.vscode/
 
 ### Intellij+all ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

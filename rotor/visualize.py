@@ -15,12 +15,12 @@ P: TypeAlias = Puzzle
 default_save_path = Path(__file__).parent.parent
 
 
-def visualize_available_states(initial_state: P, save_path: Maybe[Path] = Nothing) -> None:
+def visualize_available_states(initial_state: P, goal_state: P, save_path: Maybe[Path] = Nothing) -> None:
     graph = nx.Graph()
     available_states = explore_puzzle_from(initial_state).visited
     for state in available_states:
-        for neighbour, move in state.next_states():
-            edge = (str(state), str(neighbour))
+        for neighbor, move in state.next_states():
+            edge = (str(state), str(neighbor))
             if graph.has_edge(*edge):
                 continue
             graph.add_edge(
@@ -29,23 +29,34 @@ def visualize_available_states(initial_state: P, save_path: Maybe[Path] = Nothin
 
     pos = graphviz_layout(graph)
     edge_colors = [graph[u][v]["color"] for u, v in graph.edges]
-    node_colors = [_get_node_color(u) for u in graph.nodes]
+    node_colors = [_get_node_color(u, initial_state, goal_state) for u in graph.nodes]
     nx.draw(graph, pos, node_size=100, font_size=5, edge_color=edge_colors, node_color=node_colors, with_labels=True)
+
+    legend_elements = [
+        plt.Line2D([0], [0], marker="o", color="w", label="Initial State", markerfacecolor="y", markersize=10),
+        plt.Line2D([0], [0], marker="o", color="w", label="Goal State", markerfacecolor="tomato", markersize=10),
+        plt.Line2D([0], [0], marker="o", color="w", label="Other States", markerfacecolor="lightblue", markersize=10),
+        plt.Line2D([0], [0], color="blue", label="Standard Move", markersize=10),
+        plt.Line2D([0], [0], color="green", label="Loop Move (Standard Orientation Change)", markersize=10),
+        plt.Line2D([0], [0], color="red", label="Tricky Move", markersize=10),
+    ]
+    plt.legend(handles=legend_elements, loc="lower left", fontsize="x-small", frameon=False)
+    plt.title("Puzzle State Space")
+    final_save_path = save_path.value_or(default_save_path)
+    final_save_path.mkdir(parents=True, exist_ok=True)
+    plt.savefig(final_save_path / "graph.png", dpi=300, bbox_inches="tight")
+
+    # TODO: for some reason writing to the final_save_path is not working
     nt = Network("800px", width="100%", filter_menu=True, layout=False)
     nt.show_buttons(filter_=["nodes"])
     nt.from_nx(graph, default_node_size=20)
-
-    final_save_path = save_path.value_or(default_save_path)
-    final_save_path.mkdir(parents=True, exist_ok=True)
-    plt.savefig(final_save_path / "graph.pdf")
-    # TODO: for some reasone writing to the final_save_path is not working
     nt.write_html("graph.html")
 
 
-def _get_node_color(node: str) -> str:
-    if node == str(Puzzle.initial_state()):
+def _get_node_color(node: str, initial_state: P = Puzzle.initial_state(), goal_state: P = Puzzle.goal_state()) -> str:
+    if node == str(initial_state):
         return "y"
-    elif node == str(Puzzle.goal_state()):
+    elif node == str(goal_state):
         return "tomato"
     else:
         return "lightblue"
