@@ -70,10 +70,8 @@ The parts of each element that intersect with the other element are the ones tha
   <em>"-11+12" position (right).</em>
 </p>
 
-## State space
+## State space visualization
 
 <p align="center">
   <img src="res/graph.png" width="700"/>
-  <br>
-  <em>Blue vertices represent regular moves, green represent moving through the narrow notch and red represent the "tricky move" (moving via regular notch).</em>
 </p>
