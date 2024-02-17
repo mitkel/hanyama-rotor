@@ -3,16 +3,16 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - graphviz=9.0.0=h3face73_1
-  - matplotlib=3.8.2=py311ha1ab1f8_0
-  - networkx=3.2.1=pyhd8ed1ab_0
-  - pip=24.0=pyhd8ed1ab_0
-  - pygraphviz=1.12=py311h1df6e61_0
-  - pytest=8.0.0=pyhd8ed1ab_0
-  - pyvis=0.3.1=pyhd8ed1ab_0
-  - returns=0.22.0=pyhd8ed1ab_0
-  - black=24.1.1=py311h267d04e_0
-  - flake8=7.0.0=pyhd8ed1ab_0
-  - isort=5.13.2=pyhd8ed1ab_0
-  - mypy=1.8.0=py311h05b510d_0
-  - pre-commit=3.6.0=pyha770c72_0
+  - graphviz=9.0.0
+  - matplotlib=3.8.2
+  - networkx=3.2.1
+  - pip=24.0
+  - pygraphviz=1.12
+  - pytest=8.0.0
+  - pyvis=0.3.1
+  - returns=0.22.0
+  - black=24.1.1
+  - flake8=7.0.0
+  - isort=5.13.2
+  - mypy=1.8.0
+  - pre-commit=3.6.0
