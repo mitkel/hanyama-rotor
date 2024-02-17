@@ -19,7 +19,7 @@ cd hanayama-rotor
 conda env create --file environment.yml
 ```
 
-**Warning:** This tool requires Graphviz to be installed for generating visualizations.
+**Note:** This tool requires Graphviz to be installed for generating visualizations.
 Graphviz is an open-source graph visualization software that is not included with this package and must be installed separately.
 Please follow the installation instructions on the Graphviz website for your operating system.
 After installing Graphviz, ensure that the dot executable is in your system's PATH so that it can be used by this tool.
@@ -44,19 +44,21 @@ python cli.py
 ```
 2. Solve the puzzle with custom initial and final states
 ```bash
-python cli.py --initial-state "+20+02" --final-state "+11-00"
+python cli.py --initial-state "+01+12" --final-state "+11-01"
 ```
 3. Solve the puzzle and visualize the state space
 ```bash
-python cli.py --visualize --initial-state "+20+02" --final-state "+11-00"
+python cli.py --visualize --initial-state "+01+12" --final-state "+11-01"
 ```
 
 ## Puzzle State Representation
 The puzzle state is represented as a 6 character string.
 First 3 charaters describe the position of the golden part and last 3 characters describe the position of the silver part.
 
-- The first character indicates the orientation (+ for positive, - for negative).
-- The second character represents the position of the inner axis.
-- The third character represents the position of the outer axis.
+- The first character indicates the orientation (+ for positive, - for negative). Orientation depends on the side the "ROTOR" sign is facing.
+- The second character represents the position of the inner axis, counting clockwise from zero starting with the narrowest arm.
+- The third character represents the position of the outer axis, counting clockwise from zero starting with the widest loop.
+
+![Axes names][./res/gold-element-position.jpeg]
 
 For example, "+20" represents an element with a positive orientation, an inner axis position of 2, and an outer axis position of 0.
