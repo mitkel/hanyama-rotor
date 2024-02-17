@@ -20,17 +20,12 @@ jobs:
 
     - name: Install pre-commit
       run: |
-        conda init
-        conda activate hanayama-rotor
         conda install -c conda-forge pre-commit
 
     - name: Run pre-commit hooks
       run: |
-        conda init
-        conda activate hanayama-rotor
-        pre-commit run --all-files
+        conda run --name hanayama-rotor pre-commit run --all-files
 
     - name: Run pytest
       run: |
-        conda activate hanayama-rotor
-        pytest
+        conda run --name hanayama-rotor pytest
