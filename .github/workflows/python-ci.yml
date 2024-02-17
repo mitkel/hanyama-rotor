@@ -1,0 +1,31 @@
+name: Python CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup Conda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: hanayama-rotor
+        environment-file: environment-dev.yml
+        python-version: 3.11
+        auto-activate-base: false
+
+    - name: Install pre-commit
+      run: |
+        conda install -c conda-forge pre-commit
+
+    - name: Run pre-commit hooks
+      run: |
+        pre-commit run --all-files
+
+    - name: Run pytest
+      run: |
+        pytest
