@@ -1,6 +1,6 @@
 # Hanayama Rotor Solver
 
-This command-line interface (CLI) client is designed to solve and visualize the Hanayama rotor puzzle.
+This command-line interface (CLI) client is designed to solve and visualize the [Hanayama rotor puzzle](https://hanayama-toys.com/product/cast-rotor/).
 By inputting an initial and a final state, the client computes the shortest path between these two states, if one exists, and can visualize the state space of the puzzle.
 
 ## Features
@@ -44,21 +44,29 @@ python cli.py
 ```
 2. Solve the puzzle with custom initial and final states
 ```bash
-python cli.py --initial-state "+01+12" --final-state "+11-01"
+python cli.py --initial-state="+01+12" --final-state="+11-01"
 ```
 3. Solve the puzzle and visualize the state space
 ```bash
-python cli.py --visualize --initial-state "+01+12" --final-state "+11-01"
+python cli.py --visualize --initial-state="+01+12" --final-state="+11-01"
 ```
 
 ## Puzzle State Representation
 The puzzle state is represented as a 6 character string.
 First 3 charaters describe the position of the golden part and last 3 characters describe the position of the silver part.
+The parts of each element that intersect with the other element are the ones that decode the position.
 
 - The first character indicates the orientation (+ for positive, - for negative). Orientation depends on the side the "ROTOR" sign is facing.
 - The second character represents the position of the inner axis, counting clockwise from zero starting with the narrowest arm.
 - The third character represents the position of the outer axis, counting clockwise from zero starting with the widest loop.
 
-![Axes names][./res/gold-element-position.jpeg]
+<p align="center">
+  <img src="res/gold-element-positions.jpeg" width="320"/>
+  <img src="res/puzzle-pos-pos-position.jpeg" width="320"/>
+  <img src="res/puzzle-neg-pos-position.jpeg" width="320"/>
+  <br>
+  <em>Axes names (left).</em>
+  <em>"+11+22" position (middle).</em>
+  <em>"-11+12" position (right).</em>
+</p>
 
-For example, "+20" represents an element with a positive orientation, an inner axis position of 2, and an outer axis position of 0.
