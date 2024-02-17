@@ -3,6 +3,7 @@ from typing import TypeAlias
 
 import networkx as nx
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
 from networkx.drawing.nx_agraph import graphviz_layout
 from pyvis.network import Network
 from returns.maybe import Maybe, Nothing
@@ -15,7 +16,9 @@ P: TypeAlias = Puzzle
 default_save_path = Path(__file__).parent.parent
 
 
-def visualize_available_states(initial_state: P, goal_state: P, save_path: Maybe[Path] = Nothing) -> None:
+def visualize_available_states(
+    initial_state: P = Puzzle.initial_state(), goal_state: P = Puzzle.goal_state(), save_path: Maybe[Path] = Nothing
+) -> None:
     graph = nx.Graph()
     available_states = explore_puzzle_from(initial_state).visited
     for state in available_states:
@@ -33,12 +36,12 @@ def visualize_available_states(initial_state: P, goal_state: P, save_path: Maybe
     nx.draw(graph, pos, node_size=100, font_size=5, edge_color=edge_colors, node_color=node_colors, with_labels=True)
 
     legend_elements = [
-        plt.Line2D([0], [0], marker="o", color="w", label="Initial State", markerfacecolor="y", markersize=10),
-        plt.Line2D([0], [0], marker="o", color="w", label="Goal State", markerfacecolor="tomato", markersize=10),
-        plt.Line2D([0], [0], marker="o", color="w", label="Other States", markerfacecolor="lightblue", markersize=10),
-        plt.Line2D([0], [0], color="blue", label="Standard Move", markersize=10),
-        plt.Line2D([0], [0], color="green", label="Loop Move (Standard Orientation Change)", markersize=10),
-        plt.Line2D([0], [0], color="red", label="Tricky Move", markersize=10),
+        Line2D([0], [0], marker="o", color="w", label="Initial State", markerfacecolor="y", markersize=10),
+        Line2D([0], [0], marker="o", color="w", label="Goal State", markerfacecolor="tomato", markersize=10),
+        Line2D([0], [0], marker="o", color="w", label="Other States", markerfacecolor="lightblue", markersize=10),
+        Line2D([0], [0], color="blue", label="Standard Move", markersize=10),
+        Line2D([0], [0], color="green", label="Loop Move (Standard Orientation Change)", markersize=10),
+        Line2D([0], [0], color="red", label="Tricky Move", markersize=10),
     ]
     plt.legend(handles=legend_elements, loc="lower left", fontsize="x-small", frameon=False)
     plt.title("Puzzle State Space")
